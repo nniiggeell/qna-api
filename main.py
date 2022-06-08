@@ -29,7 +29,7 @@ app.config["port"] = "9200"
 @app.route('/')
 def home():
     """Return a friendly HTTP greeting."""
-    return 'Hello QNA API is running'
+    return 'Hello Haystack QnA API is running'
 
 #endpoint to update embedded method
 @app.route('/set_embedded', methods=['POST'])
