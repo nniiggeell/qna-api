@@ -4,15 +4,11 @@ import os
 import logging
 from flask_cors import CORS
 from flask import Flask, request, jsonify
-from haystack import Finder
-from haystack.preprocessor.cleaning import clean_wiki_text
-from haystack.preprocessor.utils import convert_files_to_dicts
-from haystack.reader.farm import FARMReader
-from haystack.document_store.elasticsearch import ElasticsearchDocumentStore
-from haystack.file_converter.pdf import PDFToTextConverter
-from haystack.retriever.dense import DensePassageRetriever
-from haystack.retriever.sparse import ElasticsearchRetriever
-
+from haystack.pipelines import ExtractiveQAPipeline
+from haystack.utils import clean_wiki_text, convert_files_to_docs
+from haystack.document_stores import ElasticsearchDocumentStore
+from haystack.nodes.retriever import DensePassageRetriever, ElasticsearchRetriever
+from haystack.nodes.reader import FARMReader
 #application settings
 app = Flask(__name__)
 CORS(app)
@@ -71,7 +67,7 @@ def update_document():
                                                     password=app.config["password"],
                                                     index=index)
         # convert the pdf files into dictionary and update to ElasticSearch Document
-        dicts = convert_files_to_dicts(
+        dicts = convert_files_to_docs(
             app.config["input"],
             clean_func=clean_wiki_text,
             split_paragraphs=False)
@@ -115,16 +111,16 @@ def qna():
 
     #initialization of ElasticRetriever
     retriever = ElasticsearchRetriever(document_store= document_store)
-    # Finder sticks together reader and retriever
+    # ExtractiveQAPipeline sticks together reader and retriever
     # in a pipeline to answer our actual questions.
-    finder = Finder(reader, retriever)
+    qa_pipe = ExtractiveQAPipeline(reader=reader, retriever=retriever)
 
     # predict n answers
     n = int(request.form['n'])
-    prediction = finder.get_answers(question=question, top_k_retriever=10, top_k_reader=n)
+    prediction = qa_pipe.run(query=question, top_k_retriever=10, top_k_reader=n)
     answer = []
-    for res in prediction['answers']:
-        answer.append(res['answer'])
+    for res in prediction['documents']:
+        answer.append(res['documents'])
 
     return json.dumps({'status':'success','message': 'Process succesfully', 'result': answer})
 
@@ -150,16 +146,16 @@ def qna_pretrain():
 
     #initialization of ElasticRetriever
     retriever = ElasticsearchRetriever(document_store= document_store)
-    # Finder sticks together reader and retriever
+    # ExtractiveQAPipeline sticks together reader and retriever
     # in a pipeline to answer our actual questions.
-    finder = Finder(reader, retriever)
+    qa_pipe = ExtractiveQAPipeline(reader=reader, retriever=retriever)
 
     # predict n answers
     n = int(request.form['n'])
-    prediction = finder.get_answers(question=question, top_k_retriever=10, top_k_reader=n)
+    prediction = qa_pipe.run(query=question, top_k_retriever=10, top_k_reader=n)
     answer = []
-    for res in prediction['answers']:
-        answer.append(res['answer'])
+    for res in prediction['documents']:
+        answer.append(res['documents'])
 
     return json.dumps({'status':'success','message': 'Process succesfully', 'result': answer})
 
