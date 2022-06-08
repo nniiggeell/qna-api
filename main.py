@@ -9,6 +9,7 @@ from haystack.utils import clean_wiki_text, convert_files_to_docs
 from haystack.document_stores import ElasticsearchDocumentStore
 from haystack.nodes.retriever import DensePassageRetriever, ElasticsearchRetriever
 from haystack.nodes.reader import FARMReader
+
 #application settings
 app = Flask(__name__)
 CORS(app)

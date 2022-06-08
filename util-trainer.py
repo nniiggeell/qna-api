@@ -1,4 +1,4 @@
-from haystack.reader.farm import FARMReader
+from haystack.nodes.reader import FARMReader
 
 #input directory of the labels answers.json file
 train_data = "/usr/src/app/data/squad20"
