@@ -50,8 +50,8 @@ def set_embedded():
     document_store.update_embeddings(retriever)
     return json.dumps({'status':'Susccess','message': 'Sucessfully embedded method updated in ElasticSearch Document', 'result': []})
 
-@app.route('/update_document', methods=['POST'])
-def update_document():
+@app.route('/upload_document', methods=['POST'])
+def upload_document():
     """Return a the url of the index document."""
     if request.files:
         # index is the target document where queries need to sent.
@@ -69,7 +69,7 @@ def update_document():
                                                     username=app.config["username"],
                                                     password=app.config["password"],
                                                     index=index)
-        # convert the pdf files into dictionary and update to ElasticSearch Document
+        # convert the pdf files into dictionary and upload to ElasticSearch Document
         docs = convert_files_to_docs(
             app.config["input"],
             clean_func=clean_wiki_text,
