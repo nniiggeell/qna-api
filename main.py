@@ -2,6 +2,7 @@
 import json
 import os
 import logging
+
 from flask_cors import CORS
 from flask import Flask, request, jsonify
 from haystack.pipelines import ExtractiveQAPipeline
@@ -31,22 +32,23 @@ def home():
     return 'Hello QNA API is running'
 
 #endpoint to update embedded method
-@app.route('/set_embeded', methods=['POST'])
-def set_embeded():
+@app.route('/set_embedded', methods=['POST'])
+def set_embedded():
     """Return a friendly HTTP greeting."""
     index = request.form['index']
     document_store = ElasticsearchDocumentStore(host=app.config["host"],
                                                 port=app.config["port"],
                                                 username=app.config["username"],
                                                 password=app.config["password"],
-                                                index=index,embedding_field="embedding",
+                                                index=index,
+                                                embedding_field="embedding",
                                                 embedding_dim=768)
     retriever = DensePassageRetriever(document_store=document_store,
                                       embedding_model="dpr-bert-base-nq",
                                       do_lower_case=True, use_gpu=False)
     #Now update the retriever embedded to the elasticsearch document
     document_store.update_embeddings(retriever)
-    return json.dumps({'status':'Susccess','message': 'Sucessfully embeded method updated in ElasticSearch Document', 'result': []})
+    return json.dumps({'status':'Susccess','message': 'Sucessfully embedded method updated in ElasticSearch Document', 'result': []})
 
 @app.route('/update_document', methods=['POST'])
 def update_document():
@@ -68,11 +70,11 @@ def update_document():
                                                     password=app.config["password"],
                                                     index=index)
         # convert the pdf files into dictionary and update to ElasticSearch Document
-        dicts = convert_files_to_docs(
+        docs = convert_files_to_docs(
             app.config["input"],
             clean_func=clean_wiki_text,
             split_paragraphs=False)
-        document_store.write_documents(dicts)
+        document_store.write_documents(docs)
         os.remove(file_path)
         return json.dumps(
             {'status':'Susccess','message':
